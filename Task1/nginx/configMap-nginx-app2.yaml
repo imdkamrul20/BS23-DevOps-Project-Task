@@ -1,0 +1,22 @@
+kind: ConfigMap
+apiVersion: v1
+metadata:
+  name: nginx-app2
+  namespace: core-system
+data:
+  app2.conf: |
+    server {
+            listen 80 ssl;
+//            ssl_protocols TLSv1.2 TLSv1.3;
+//            ssl_certificate /etc/nginx/ssl/certificate.crt;
+//            ssl_certificate_key /etc/nginx/ssl/key_file.key;
+
+            server_name demoapp.com;
+
+            location / {
+                client_max_body_size 100M;
+                include proxy_params;
+                proxy_pass http://app2.core-system:8096;
+            }
+
+    }

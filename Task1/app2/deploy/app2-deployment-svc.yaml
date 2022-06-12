@@ -1,0 +1,63 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: app2
+  namespace: core-system
+  labels:
+    k8s-app: app2
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: app2
+  template:
+    metadata:
+      name: app2
+      labels:
+        k8s-app: app2
+    spec:
+      volumes:
+        - name: task-pv-storage
+          persistentVolumeClaim:
+            claimName: task-pv-claim
+      containers:
+        - name: app2
+          image: 'registry.com:5000/app2:tagVersion'
+          workingDir: /app2
+          env:
+            - configMapRef:
+                name: dbenv-config
+            - name: LANG
+              value: C.UTF-8
+            - name: REDIS_SERVICE
+          resources: {}
+          volumeMounts:
+            - name: task-pv-storage
+              mountPath: /app2
+          imagePullPolicy: IfNotPresent
+      restartPolicy: Always
+      nodeSelector:
+        operation: node2
+      imagePullSecrets:
+        - name: regcred01
+      schedulerName: default-scheduler
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: app2-svc
+  namespace: core-system
+  labels:
+    k8s-app: app2-svc
+spec:
+  ports:
+    - name: tcp-8096-80-p4sxz
+      protocol: TCP
+      port: 8096
+      targetPort: 80
+      nodePort: 31002
+  selector:
+    k8s-app: app2-svc
+  clusterIP:
+  clusterIPs:
+  type: NodePort

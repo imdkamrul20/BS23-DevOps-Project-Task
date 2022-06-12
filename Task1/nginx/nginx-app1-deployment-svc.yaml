@@ -1,0 +1,56 @@
+kind: Deployment
+apiVersion: apps/v1
+metadata:
+  name: nginx-app1
+  namespace: core-system
+  labels:
+    k8s-app: nginx-app1
+spec:
+  replicas: 1
+  selector:
+    matchLabels:
+      k8s-app: nginx-app1
+  template:
+    metadata:
+      name: nginx-app1
+      labels:
+        k8s-app: nginx-app1
+    spec:
+      volumes:
+        - name: app1-config
+          configMap:
+            name: nginx-app1
+            defaultMode: 420
+      containers:
+        - name: nginx-app1
+          image: 'registry.com:5000/nginx-app1:v1'
+          volumeMounts:
+            - name: app1-config
+              mountPath: /etc/nginx/conf.d/app1.conf
+              subPath: app1.conf
+          imagePullPolicy: IfNotPresent
+      imagePullSecrets:
+        - name: regcred01
+---
+kind: Service
+apiVersion: v1
+metadata:
+  name: nginx-app1
+  namespace: core-system
+  labels:
+    k8s-app: nginx-app1
+spec:
+  ports:
+    - name: https
+      protocol: TCP
+      port: 443
+      targetPort: 443
+      nodePort: 31876
+    - name: http
+      protocol: TCP
+      port: 80
+      targetPort: 80
+      nodePort: 32029
+  selector:
+    k8s-app: nginx-app1
+  type: NodePort
